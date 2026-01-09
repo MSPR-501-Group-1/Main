@@ -1,7 +1,7 @@
 # Pour lancer le projet complet :
 
 Dans VSCODE :
-- git clone --recurse-submodules https://github.com/my-project-org/deploy.git
+- git clone --recurse-submodules https://github.com/MSPR-501-Group-1/deploy.git
 - cd deploy
 - docker compose up --build
 
