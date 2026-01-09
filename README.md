@@ -1,11 +1,11 @@
 # Pour lancer le projet complet :
 
 Dans VSCODE :
-- git clone --recurse-submodules https://github.com/my-project-org/project-infra.git
-- cd project-infra
+- git clone --recurse-submodules https://github.com/my-project-org/deploy.git
+- cd deploy
 - docker compose up --build
 
-# Pour push depuis un submodule sur le repo "Configurations" :
+# Pour push depuis un submodule sur le repo "Deploy" :
 
 - Aller à la racine du submodule (ex : cd backend)
 - git pull
