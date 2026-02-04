@@ -7,3 +7,6 @@
 [submodule "etl"]
 	path = etl
 	url = https://github.com/MSPR-501-Group-1/etl.git
+[submodule "database"]
+	path = database
+	url = https://github.com/MSPR-501-Group-1/database.git
