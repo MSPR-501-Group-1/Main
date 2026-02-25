@@ -14,7 +14,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./database:/initdb.sql   # scripts SQL exécutés au 1er boot
+      - ./database:/app/initdb.sql   # scripts SQL exécutés au 1er boot
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-health_app}"]
