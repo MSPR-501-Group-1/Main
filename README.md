@@ -2,7 +2,6 @@
 
 Dans VSCODE :
 - git clone --recurse-submodules https://github.com/MSPR-501-Group-1/deploy.git
-- cd deploy
 - docker compose up --build
 
 # Pour push depuis un submodule sur le repo "Deploy" :
@@ -20,7 +19,4 @@ git push
 
 # Règles importantes :
 
-Dans chaque repo enfant, il faut avoir :
-
-- Un dossier app ou tout le code se situe.
-- Le .gitignore / Dockerfile / package.json / package-lock.json / README -> à la racine du repo.
+Dans chaque repo enfant, il faut avoir un Dockerfile qui fonctionne bien avec le docker-compose.
