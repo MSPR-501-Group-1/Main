@@ -7,6 +7,13 @@ Dans VSCODE :
 
 # Pour push depuis un submodule sur le repo "Deploy" :
 
-- Aller dans la racine du projet Deploy
-- Taper la commande : "git submodule update --remote NOM_DU_SERVICE"
-- Faite un commit du genre "Update latest commit from NOM_DU_SERVICE"
+# ÉTAPE 1 — dans le dossier du submodule (ex: ./backend)
+git add .
+git commit -m "feat: mon changement"
+git push origin main          # ← push sur le repo du submodule
+
+# ÉTAPE 2 — dans la racine du repo Main (ou Deplay)
+git submodule update --remote backend
+git add backend               # ← le parent enregistre le nouveau hash
+git commit -m "Update latest commit from backend"
+git push
