@@ -23,4 +23,4 @@ git push
 Dans chaque repo enfant, il faut avoir :
 
 - Un dossier app ou tout le code se situe.
-- Le .gitignore / Dockerfile / README à la racine du repo.
+- Le .gitignore / Dockerfile / package.json / package-lock.json / README -> à la racine du repo.
