@@ -1,3 +1,4 @@
+
 services:
 
   # ─────────────────────────────────────────
@@ -14,7 +15,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./database:/app/initdb.sql   # scripts SQL exécutés au 1er boot
+      - ./database/initdb.sql:/docker-entrypoint-initdb.d/init.sql:ro
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-health_app}"]
@@ -67,18 +68,26 @@ services:
       JWT_SECRET: ${JWT_SECRET:-changeme_in_production}
     ports:
       - "3000:3000"
+    working_dir: /app
     volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - ./backend:/app:delegated
+      - backend_node_modules:/app/node_modules
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - internal
       - external
+    # commande par défaut : adapte si tu utilises npm start / node server.js / pm2
+    command: ["sh", "-c", "npm install --no-audit --no-fund && npm run start"]
 
   # ─────────────────────────────────────────
-  #  FRONTEND React
+  #  FRONTEND React (Vite)
   # ─────────────────────────────────────────
   frontend:
     build:
@@ -87,12 +96,13 @@ services:
     container_name: frontend
     restart: unless-stopped
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+      VITE_API_URL: ${VITE_API_URL:-http://backend:3000}
     ports:
       - "5173:5173"
+    working_dir: /app
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - ./frontend:/app:delegated
+      - frontend_node_modules:/app/node_modules
     depends_on:
       - backend
     networks:
@@ -103,9 +113,11 @@ services:
 # ─────────────────────────────────────────
 volumes:
   pgdata:
+  backend_node_modules:
+  frontend_node_modules:
 
 networks:
-  internal:   # db ↔ etl ↔ backend (non exposé)
+  internal:
     driver: bridge
-  external:   # backend ↔ frontend (exposé navigateur)
+  external:
     driver: bridge
