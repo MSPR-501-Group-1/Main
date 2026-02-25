@@ -1,22 +1,111 @@
-version: "3.9"
-
 services:
-  database:
-    build: ./database
-    
+
+  # ─────────────────────────────────────────
+  #  BASE DE DONNÉES PostgreSQL
+  # ─────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-health_app}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database:/initdb.sql   # scripts SQL exécutés au 1er boot
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-health_app}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  # ─────────────────────────────────────────
+  #  ETL Python
+  # ─────────────────────────────────────────
+  etl:
+    build:
+      context: ./etl
+      dockerfile: Dockerfile
+    container_name: etl
+    restart: on-failure
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-health_app}
+      DB_USER: ${POSTGRES_USER:-admin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+    volumes:
+      - ./etl:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+
+  # ─────────────────────────────────────────
+  #  BACKEND Node.js
+  # ─────────────────────────────────────────
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-health_app}
+      DB_USER: ${POSTGRES_USER:-admin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      JWT_SECRET: ${JWT_SECRET:-changeme_in_production}
     ports:
       - "3000:3000"
-    env_file:
-      - .env
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+      - external
 
+  # ─────────────────────────────────────────
+  #  FRONTEND React
+  # ─────────────────────────────────────────
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
     ports:
       - "5173:5173"
-
-  etl:
-    build: ./etl
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
+    networks:
+      - external
+
+# ─────────────────────────────────────────
+#  VOLUMES & RÉSEAUX
+# ─────────────────────────────────────────
+volumes:
+  pgdata:
+
+networks:
+  internal:   # db ↔ etl ↔ backend (non exposé)
+    driver: bridge
+  external:   # backend ↔ frontend (exposé navigateur)
+    driver: bridge
