@@ -8,6 +8,8 @@ services:
     image: postgres:16-alpine
     container_name: database
     restart: unless-stopped
+    env_file:
+      - ./.env
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-health_app}
       POSTGRES_USER: ${POSTGRES_USER:-admin}
@@ -34,6 +36,8 @@ services:
       dockerfile: Dockerfile
     container_name: etl
     restart: on-failure
+    env_file:
+      - ./.env
     environment:
       DB_HOST: db
       DB_PORT: 5432
@@ -57,6 +61,8 @@ services:
       dockerfile: Dockerfile
     container_name: backend
     restart: unless-stopped
+    env_file:
+      - ./.env
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3000
@@ -95,6 +101,8 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     restart: unless-stopped
+    env_file:
+      - ./.env
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://backend:3000}
     ports:
